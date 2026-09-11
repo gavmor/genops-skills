@@ -1,0 +1,92 @@
+---
+name: GenOps Skills Manifest
+version: "1.0.0"
+last_updated: "2026-09-10"
+description: "Complete skill ecosystem for orchestrating high-throughput R&D via Kanban, Definition of Done, A3 reports, readiness gates, and kill matrix."
+skills:
+  - name: genops-framework
+    description: "GenOps: Kanban + Definition of Done + readiness gates."
+    role: "Parent/conceptual reference"
+    load_when: "Starting to use GenOps; understand overall architecture"
+    
+  - name: genops-router
+    description: "Route experiments to GenOps skill based on stage."
+    role: "Meta-skill dispatcher"
+    load_when: "Unsure which skill to use; decision tree for stage-appropriate tool selection"
+    
+  - name: genops-experiment-init
+    description: "Start new experiment: EXPERIMENT.yml, branch, A3 stub."
+    role: "Experiment scaffolding"
+    load_when: "Creating a new experiment in Hypothesis Backlog or Experimental Design stage"
+    exit_criterion: "Branch created, EXPERIMENT.yml populated, A3 stub initialized"
+    
+  - name: genops-kanban
+    description: "Kanban board: initialize, move experiments, WIP, metrics."
+    role: "Flow visibility and enforcement"
+    load_when: "Moving experiment between stages, checking WIP limits, generating flow metrics"
+    exit_criterion: "Kanban board updated, stage transition recorded in EXPERIMENT.yml, WIP limits verified"
+    
+  - name: genops-definition-of-done
+    description: "Verify experiment complete: DoD, reproducibility, data."
+    role: "Completion verification gate"
+    load_when: "Before Peer Review gate, verifying all 6 DoD items are satisfied"
+    exit_criterion: "All 6 DoD checklist items signed off, evidence collected (data archive, SOP, statistical summary, A3, reproducibility test)"
+    
+  - name: genops-a3-report
+    description: "A3 visual abstract: create, build iteratively through."
+    role: "Visual documentation and iterative synthesis"
+    load_when: "Starting Experimental Design (problem statement), continuing through Active Testing (design, results), finalizing before Peer Review"
+    exit_criterion: "A3 complete, proper PDCA flow, visual hierarchy enforced, color-blind accessible, stored in wiki repo"
+    
+  - name: genops-readiness-gates
+    description: "Assess TRL/IRL/SRL maturity. Promotion gates, regression."
+    role: "Promotion decision checkpoint"
+    load_when: "Before promotion to mainline, assessing workflow maturity (TRL 7+, IRL 6+), running regression test suite"
+    exit_criterion: "TRL/IRL/SRL scores documented, regression suite passes (zero failures), rollback procedure tested and documented"
+    
+  - name: genops-kill-matrix
+    description: "Score experiments: ROI, velocity, validation, opportunity."
+    role: "Portfolio rationalization"
+    load_when: "Quarterly review or when experiment stalls >60 days, scoring viability using forward-looking metrics"
+    exit_criterion: "Composite score computed (mean of 5 dimensions), decision recorded (Go/Recycle/Kill), resources reallocated if Kill decision"
+
+load_order:
+  - "First time only: genops-framework (understand overall system)"
+  - "Per task: genops-router (decide which skill applies)"
+  - "Then load the recommended skill(s) for your current stage"
+
+progressive_disclosure:
+  principle: "Do not load all skills at once. Load only what's relevant to your current task."
+  rationale: "Minimizes context pollution, prevents skill descriptions from conflicting, keeps system prompt focused."
+  implementation: "genops-router acts as dispatcher; load its output skill only."
+
+repository_architecture:
+  main_repo:
+    purpose: "Experiment branches + canonical workflows"
+    structure:
+      - "feature/*, fix/*, refactor/*, docs/* branches with EXPERIMENT.yml"
+      - "workflows/*.api.json (production-ready on main only)"
+      - "analysis/*.py (experiment-specific scripts per branch)"
+  
+  wiki_repo:
+    purpose: "Authoritative tracking: Kanban board, A3 reports, assessments, kill-matrix scores"
+    structure:
+      - "KANBAN.md (auto-generated from git + EXPERIMENT.yml)"
+      - "A3/<experiment-id>.md"
+      - "assessments/<experiment-id>.yml"
+      - "kill-matrix/<date>.json"
+
+design_principles:
+  - "Process over prose: workflows with checkpoints, not essays"
+  - "Anti-rationalization tables: pre-written rebuttals to common excuses"
+  - "Verification is non-negotiable: every workflow ends in concrete evidence"
+  - "Progressive disclosure: load only relevant skills per task"
+  - "Scope discipline: touch only what you're asked to touch"
+
+references:
+  - "Kanban: Lean methodology (Toyota, David Anderson)"
+  - "Agile-Stage-Gate: Cooper, Stage-Gate Development Processes"
+  - "A3 Problem-Solving: Toyota, Art Smalley"
+  - "TRL/IRL/SRL: NASA, U.S. Department of Defense, aerospace engineering"
+  - "Sunk Cost Fallacy: behavioral economics (Thaler, Arkes, Blumer)"
+  - "Agent Skills: Addy Osmani (addyosmani.com/blog/agent-skills/)"
