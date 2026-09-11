@@ -22,18 +22,23 @@ Built on principles from:
 
 ## Skills Included
 
-### Core Skills
+### Governance & Tracking Skills
 
-| Skill | Purpose |
-|-------|---------|
-| **`genops-framework`** | Conceptual overview, principles, architecture |
-| **`genops-router`** | Route to correct sub-skill based on experiment stage |
-| **`genops-experiment-init`** | Scaffold new experiment: branch, EXPERIMENT.yml, A3 stub |
-| **`genops-kanban`** | Manage board, enforce WIP limits, compute flow metrics |
-| **`genops-definition-of-done`** | Verify experiment completion before gate review |
-| **`genops-a3-report`** | Build iterative visual abstracts (PDCA format) |
-| **`genops-readiness-gates`** | Assess TRL/IRL/SRL maturity before promotion |
-| **`genops-kill-matrix`** | Score stalled experiments for portfolio rationalization |
+- **`genops-framework`** – Conceptual overview, principles, architecture
+- **`genops-router`** – Route to correct sub-skill based on experiment stage
+- **`genops-kanban`** – Manage board, enforce WIP limits, compute flow metrics
+- **`genops-definition-of-done`** – Verify experiment completion before gate review
+- **`genops-a3-report`** – Build iterative visual abstracts (PDCA format)
+- **`genops-readiness-gates`** – Assess TRL/IRL/SRL maturity before promotion
+- **`genops-kill-matrix`** – Score stalled experiments for portfolio rationalization
+
+### Autonomous Runner Skills (New)
+
+- **`genops-experiment-runner`** – Submit link, scaffold pipeline, kick off overnight run
+- **`genops-results-parser`** – Auto-extract ComfyUI metrics (latency, VRAM, queue time)
+- **`genops-a3-auto-renderer`** – Auto-generate A3 from results + hypothesis
+- **`genops-morning-digest`** – Daily digest of overnight results with decision checkboxes
+- **`genops-orchestrator`** – Chain all skills into autonomous loop; execute decisions
 
 ### Design Principles
 
@@ -68,31 +73,62 @@ GenOps expects two git repositories:
 
 ```bash
 # Add to your Hermes profile
-hermes skills import genops-framework genops-router genops-experiment-init genops-kanban genops-definition-of-done genops-a3-report genops-readiness-gates genops-kill-matrix
+hermes skills import \
+  genops-framework \
+  genops-router \
+  genops-kanban \
+  genops-definition-of-done \
+  genops-a3-report \
+  genops-readiness-gates \
+  genops-kill-matrix \
+  genops-experiment-runner \
+  genops-results-parser \
+  genops-a3-auto-renderer \
+  genops-morning-digest \
+  genops-orchestrator
 ```
 
-### 2. Initialize Experiment Tracking
+### 2. The Autonomous Experiment Workflow
+
+**You:** Send a link (HuggingFace model, GitHub workflow, Reddit post)
+
+```
+I: "Check out this model: https://huggingface.co/Qwen/Qwen-VL"
+```
+
+**Me (Autonomous)**:
+1. `genops-experiment-runner` – Extract metadata, scaffold branch + pipeline
+2. Push to GitHub → Concourse auto-detects branch
+3. Concourse runs overnight (4-24 hours)
+4. `genops-results-parser` – Parse ComfyUI metrics (latency, VRAM)
+5. `genops-a3-auto-renderer` – Generate A3 report
+6. 08:00 next morning: `genops-morning-digest` – Post results summary
+
+**You:** Review morning digest, reply with decisions (5 min)
+
+```
+test-qwen-vl-20260911: ✅ Yes (merge)
+test-llava-20260911: 🔄 Recycle (seed=42)
+test-sdxl-20260911: ❌ Kill
+```
+
+**Me (Automated)**:
+- `genops-orchestrator` – Execute merges, kills, recycles
+- Update Kanban board
+- Next experiment kicks off
+
+### 3. Initialize Experiment Tracking
 
 ```bash
 # Clone your main repo and wiki repo
 git clone <your-experiments-repo> my-experiments
 git clone <your-experiments-repo>.wiki my-experiments.wiki
 
-# Use genops-kanban to initialize KANBAN.md
-# Use genops-experiment-init to start first experiment
+# Use genops-kanban to initialize KANBAN.md (if not using runner workflow)
+# Use genops-experiment-init to start first experiment (if not using runner workflow)
 ```
 
-### 3. Workflow: New Experiment
-
-```
-Use genops-router → Route to genops-experiment-init
-→ Create branch, scaffold EXPERIMENT.yml, A3 stub
-→ During design: use genops-a3-report to build sections
-→ During active testing: use genops-kanban to move stage
-→ Before peer review: use genops-definition-of-done checklist
-→ Before promotion: use genops-readiness-gates for TRL/IRL assessment
-→ Quarterly: use genops-kill-matrix to score stalled experiments
-```
+## Overnight Experiment Loop: Full Timeline
 
 ## EXPERIMENT.yml Schema
 
