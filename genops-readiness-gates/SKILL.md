@@ -57,7 +57,14 @@ Store at `readiness-gates/<experiment-id>.yml` in wiki:
 ---
 experiment_id: feature/krea2-4step-distill-test
 assessment_date: 2026-09-20
-assessment_by: [Gavin Morgan, Alice (independent)]
+assessment_by: Gavin Morgan  # Lead researcher / author
+
+independent_reviewer: Alice (independent)  # Mandatory: principal or distinct reviewer profile (e.g. qa)
+independent_review_date: 2026-09-20
+independent_review_verdict: CONFIRMED  # CONFIRMED | CHALLENGED | OVERTURNED
+independent_review_notes: |
+  Independently verified raw render metrics and commit history.
+  Checked against known failure modes (temporal continuity, seed anomalies, unconfounded controls).
 
 trl_score: 8
 trl_rationale: |
@@ -86,7 +93,7 @@ promotion_reasoning: |
   IRL=7: integration ready (zero regression).
   Risk: LOW. Recommend mainline promotion with canary rollout.
 
-approved_by: Independent Review Committee (Dave, Eve, Frank)
+approved_by: Gavin Morgan
 approval_date: 2026-09-20
 ```
 
@@ -104,9 +111,12 @@ Add MLTRL checks:
 ## Workflow: Running Readiness Assessment
 
 1. **Gather evidence:** Test results, logs, documentation for TRL/IRL checklists
-2. **Self-assess:** Lead researcher completes checklist honestly
-3. **Independent review:** Colleague unfamiliar with experiment reviews
-4. **Committee gate:** Present to Independent Review Committee
+2. **Self-assess:** Lead researcher / implementing agent completes checklist honestly. Self-assessment alone is strictly PROVISIONAL and cannot grant promotion to `main`.
+3. **Independent review:** An independent reviewer distinct from the author (Gavin Morgan or designated `qa` reviewer profile) verifies the assessment:
+   - **Zero operational claims without verified tool stdout:** The reviewer independently inspects raw execution traces, data outputs, and git commit hashes.
+   - **Audit known blind spots:** Reviewer explicitly tests for unconfounded variables (ADR 0004), temporal video playback (not static frame grids), exposure/brightness normalisation, and single-hardware variance.
+   - **Verdict:** Record `CONFIRMED`, `CHALLENGED` (requires rework), or `OVERTURNED` (finding refuted) in assessment YAML.
+4. **Promotion gate rule:** Any readiness assessment lacking an independent review is blocked from `PROMOTE` status (capped at `HOLD` or `PROVISIONAL`).
 5. **Decision:** Go/Hold/Recycle/Kill (recorded in YAML)
 6. **If Go:** Delete `EXPERIMENT.yml` from branch, merge to `main`
 7. **If Hold/Recycle/Kill:** Document, update Kanban
@@ -115,7 +125,7 @@ Add MLTRL checks:
 
 Before merging experiment branch to `main`:
 
-- [ ] Readiness assessment complete (TRL/IRL/SRL ≥ threshold)
+- [ ] Readiness assessment complete (TRL/IRL/SRL ≥ threshold) with signed-off independent review (self-assessment alone cannot promote)
 - [ ] A3 finalized, filed in wiki
 - [ ] Workflow file (`workflows/*.api.json`) final, tested
 - [ ] SOP complete (`docs/SOP-*.md`)
@@ -128,6 +138,7 @@ Before merging experiment branch to `main`:
 
 ## Common Rationalizations (and Why They Don't Work)
 
+- **"Self-assessment is enough for readiness gates; we don't need a second reviewer."** → No. Author self-assessment suffers from confirmation bias and blind spots (e.g. unwatchable reference clips, false cut detection, exposure shifts misread as identity drift). Independent review against verified tool stdout is required before any promotion.
 - **"TRL 6 is good enough for promotion."** → No. TRL 7+ is the gate. TRL 6 is "works in controlled conditions." TRL 7 is "proven in realistic operations." Those aren't negotiable.
 - **"Regression testing is overhead; just ship it."** → Regression testing catches silent failures that user-facing tests miss. A PR with zero regressions is mergeable; anything else gets reverted.
 - **"We can skip rollback testing; our deployments never fail."** → Famous last words. Test the rollback twice, document the procedure, or you will discover it doesn't work at 3am during an incident.
