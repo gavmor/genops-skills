@@ -9,6 +9,32 @@ Before an experiment passes a gate review, it must satisfy strict Definition of 
 
 ## Universal DoD Checklist
 
+### 0. Execution Evidence (HARD GATE — nothing below counts without it)
+
+An experiment card is not done until BOTH exist:
+
+- [ ] **Concourse build URL** for every arm, from a real pipeline run on target
+      `lab` (`https://tower-1.tail4e3622.ts.net:8443/...`), with build status
+- [ ] **Results visible in Immich** — a real `put:` egress landing in a named
+      album; report album name + asset count, and confirm per-asset filenames
+      MATCH their album/arm
+
+**Verify:** `fly -t lab builds` shows the build; Immich enumeration via
+`POST /api/search/metadata` with an `albumIds` filter (NOT `GET /api/albums/{id}`,
+which returns no assets by default). N arms resolving to one asset id means the
+comparison is void — see `concourse-artifact-egress`.
+
+**A design is not a run.** Pre-registration, an `EXPERIMENT.yml`, a validated
+graph, a docs/experiments/ page, or a KANBAN commit satisfy the *design* card
+and close nothing else. If the card says "Test" or "Run," it needs a build URL
+and Immich assets. Split design and execution into separate cards so each can
+be closed honestly.
+
+**GPU contention is not a blocker.** `gpu-lock` is a Concourse `pool` resource
+(ADR 0002); jobs queue at the acquire step. Push the pipeline and let the pool
+serialize it. Only an absent second hardware configuration, or missing external
+authorization, is a genuine block.
+
 ### 1. Execution Completeness
 
 - [ ] All planned iterations executed
